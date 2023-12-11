@@ -50,6 +50,7 @@ AMyProjectCharacter::AMyProjectCharacter()
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 
+
 	canShoot = true;
 	shootCooldown = 3.f;
 	
@@ -108,7 +109,7 @@ void AMyProjectCharacter::SetupPlayerInputComponent(class UInputComponent* Playe
 		//Shooting
 		EnhancedInputComponent->BindAction(shootAction, ETriggerEvent::Triggered, this, &AMyProjectCharacter::Shoot);
 		//Ultimate
-		//EnhancedInputComponent->BindAction(ultimateAction, ETriggerEvent::Triggered, this, &AMyProjectCharacter::Ultimate);
+		EnhancedInputComponent->BindAction(ultimateAction, ETriggerEvent::Triggered, this, &AMyProjectCharacter::Ultimate);
 	
 	}
 
@@ -159,7 +160,7 @@ void AMyProjectCharacter::Shoot(const FInputActionValue& Value)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Shoot Successfull!"));
 
-		/////// - READ - DOESNT DELTE AFTER RETURNING TO PLAYER - doesn't apply damage////
+		/////// - READ -  doesn't apply damage - GetRotation orks for right and left shuriken but not midddle one, its also not showing message, when this is implemented this is done////
 		
 		// Calculate positions and rotations for middle, left, and right projectiles
 		FVector PlayerLocation = GetActorLocation();
@@ -175,15 +176,18 @@ void AMyProjectCharacter::Shoot(const FInputActionValue& Value)
 		FRotator RotationRight = PlayerForwardVector.RotateAngleAxis(220.0f, FVector::UpVector).Rotation();
 
 		// Spawn middle projectile
-		AProjectile* middleShuriken = GetWorld()->SpawnActor<AProjectile>(LocationMiddle, RotationMiddle);
+		middleShuriken = GetWorld()->SpawnActor<AProjectile>(LocationMiddle, RotationMiddle);
+		middleShuriken->getAngleRotation();
 		middleShuriken->StaticMesh->SetPhysicsLinearVelocity(PlayerForwardVector * 2000.0f); // Adjust speed as needed
 
 		// Spawn left projectile
-		AProjectile* leftShuriken = GetWorld()->SpawnActor<AProjectile>(LocationLeft, RotationLeft);
+		leftShuriken = GetWorld()->SpawnActor<AProjectile>(LocationLeft, RotationLeft);
+		leftShuriken->getAngleRotation();
 		leftShuriken->StaticMesh->SetPhysicsLinearVelocity(leftShuriken->GetActorRightVector() * 2000.0f); // Adjust speed as needed
 
 		// Spawn right projectile
-		AProjectile* rightShuriken = GetWorld()->SpawnActor<AProjectile>(LocationRight, RotationRight);
+		rightShuriken = GetWorld()->SpawnActor<AProjectile>(LocationRight, RotationRight);
+		rightShuriken->getAngleRotation();
 		rightShuriken->StaticMesh->SetPhysicsLinearVelocity(rightShuriken->GetActorRightVector() * 2000.0f); // Adjust speed as needed
 
 
@@ -191,8 +195,8 @@ void AMyProjectCharacter::Shoot(const FInputActionValue& Value)
 		SpawnedProjectiles.Add(middleShuriken);
 		SpawnedProjectiles.Add(leftShuriken);
 		SpawnedProjectiles.Add(rightShuriken);
-
-		// Setting a timer to return the projectiles at desired time - 1 second
+		
+		// Setting a timer to return the projectiles at desired time - .2 seconds
 		FTimerHandle TimerHandle;
 		GetWorldTimerManager().SetTimer(TimerHandle, this, &AMyProjectCharacter::ReturnProjectiles, 0.2f, false);
 
@@ -249,14 +253,18 @@ void AMyProjectCharacter::DeleteProjectiles()
 }
 
 
-//void AMyProjectCharacter::Ultimate(const FInputActionValue& Value)
-//{
-//	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("Ultimate here!")));
-//}
+void AMyProjectCharacter::Ultimate(const FInputActionValue& Value)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("Ultimate here!")));
+	/*for (int i = 0; i <= 12; i++)
+	{
+
+	}*/
+}
 
 
 void AMyProjectCharacter::UI()
-{S
+{
 
 	static bool talonQReady = true;
 

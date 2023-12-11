@@ -53,14 +53,16 @@ class AMyProjectCharacter : public ACharacter
 	class UInputAction* shootAction;
 	
 	/* Action Input */
-	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	//class UInputAction* ultimateAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* ultimateAction;
 
 
 public:
 	AMyProjectCharacter();
 	
 	virtual void Tick(float DeltaTime) override;
+	// To add mapping context
+	virtual void BeginPlay();
 
 protected:
 
@@ -84,8 +86,10 @@ protected:
 	void UI();
 
 	/* Projectile */
-	//AProjectile* Shuriken;
 	TArray<AProjectile*> SpawnedProjectiles;
+	AProjectile* middleShuriken;
+	AProjectile* rightShuriken;
+	AProjectile* leftShuriken;
 
 	/* Cooldown Timer */
 	float shootCooldown;
@@ -97,8 +101,7 @@ protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
-	// To add mapping context
-	virtual void BeginPlay();
+	
 
 public:
 	/** Returns CameraBoom subobject **/

@@ -24,7 +24,6 @@ AProjectile::AProjectile()
 		StaticMesh->SetStaticMesh(meshToUse);
 	}
 
-	
 
 }
 
@@ -35,13 +34,19 @@ void AProjectile::BeginPlay()
 	StaticMesh->SetSimulatePhysics(true);
 	StaticMesh->SetEnableGravity(false);
 
-	
-	
 }
 
 // Called every frame
 void AProjectile::Tick(float DeltaTime)
 {
+
 	Super::Tick(DeltaTime);
-	
+}
+
+
+void AProjectile::getAngleRotation()
+{
+	// Adding a rotation on the Z axis using Angular Velocity
+	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("Its calling this function")));
+	StaticMesh->SetPhysicsAngularVelocityInDegrees(FVector(0.0f, 0.0f, 400.0f), false, NAME_None);
 }

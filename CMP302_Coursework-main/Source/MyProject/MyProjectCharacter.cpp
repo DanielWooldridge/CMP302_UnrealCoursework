@@ -53,6 +53,11 @@ AMyProjectCharacter::AMyProjectCharacter()
 
 	canShoot = true;
 	shootCooldown = 3.f;
+
+	canUlt = true;
+	ultimateCooldown = 3.f;
+
+	StandstillDistance = 500.0f;
 	
 }
 
@@ -66,6 +71,17 @@ void AMyProjectCharacter::Tick(float DeltaTime)
 		{
 			shootCooldown = 3.0f; // Ensure the cooldown doesn't exceed the maximum value
 			canShoot = true;
+		}
+	}
+
+	if (!canUlt)
+	{
+		ultimateCooldown += DeltaTime;
+
+		if (ultimateCooldown >= 3.0f)
+		{
+			ultimateCooldown = 3.0f; // Ensure the cooldown doesn't exceed the maximum value
+			canUlt = true;
 		}
 	}
 
@@ -211,6 +227,7 @@ void AMyProjectCharacter::ReturnProjectiles()
 {
 	FVector PlayerLocation = GetActorLocation();
 
+
 	for (AProjectile* Projectile : SpawnedProjectiles)
 	{
 		if (Projectile)
@@ -252,14 +269,97 @@ void AMyProjectCharacter::DeleteProjectiles()
 	SpawnedProjectiles.Empty(); // Clear the array
 }
 
-
+// ERROR WHEN RETURNING SHURIKENS - IF YOU GO CLOSER THEY RETURN - IF YOU DONT GO UP TO THE CERTAIN DISTANCE THEY DONT RETURN BUT ONCE YOU ARE IN THE VICINITY THEY RETURN
 void AMyProjectCharacter::Ultimate(const FInputActionValue& Value)
 {
 	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("Ultimate here!")));
-	/*for (int i = 0; i <= 12; i++)
-	{
 
-	}*/
+	if (canUlt)
+	{
+		const int32 NumShurikens = 12;
+		const float AngleIncrement = 360.0f / NumShurikens;
+
+		FVector PlayerLocation = GetActorLocation();
+
+		// Create a separate array for ultimate projectiles
+		TArray<AProjectile*> UltimateProjectiles;
+
+		for (int32 i = 0; i < NumShurikens; ++i)
+		{
+			// Calculate spawn location and rotation for each shuriken
+			float AngleInRadians = FMath::DegreesToRadians(i * AngleIncrement);
+			FVector SpawnLocation = PlayerLocation + FVector(FMath::Cos(AngleInRadians), FMath::Sin(AngleInRadians), 0.0f) * 100.0f;
+			FRotator SpawnRotation = FRotationMatrix::MakeFromX(PlayerLocation - SpawnLocation).Rotator();
+
+			// Spawn the shuriken
+			AProjectile* UltimateShuriken = GetWorld()->SpawnActor<AProjectile>(SpawnLocation, SpawnRotation);
+			UltimateShuriken->getAngleRotation();
+			UltimateShuriken->StaticMesh->SetPhysicsLinearVelocity(UltimateShuriken->GetActorForwardVector() * 2000.0f); // Adjust speed as needed
+
+			// Set the standstill distance for the spawned shuriken
+			UltimateShuriken->StandstillDistance = StandstillDistance;
+
+			// Set the flag for ultimate projectiles
+			UltimateShuriken->bIsUltimateProjectile = true;
+
+			// Add the ultimate projectile to the separate array
+			UltimateProjectiles.Add(UltimateShuriken);
+		}
+
+		// Add the ultimate projectiles array to the main SpawnedProjectiles array
+		SpawnedProjectiles.Append(UltimateProjectiles);
+
+		ultimateCooldown = 0.f;
+		canUlt = false;
+
+		// Set a timer to return the ultimate projectiles at the desired time - 2 seconds
+		FTimerHandle TimerHandle;
+		GetWorldTimerManager().SetTimer(TimerHandle, this, &AMyProjectCharacter::ReturnUltProjectiles, 2.f, false);
+	}
+}
+
+
+void AMyProjectCharacter::ReturnUltProjectiles()
+{
+	FVector PlayerLocation = GetActorLocation();
+
+
+	for (AProjectile* Projectile : SpawnedProjectiles)
+	{
+		if (Projectile)
+		{
+			// Assuming you have a reference to the StaticMesh component in your Projectile class
+			UStaticMeshComponent* ProjectileMesh = Projectile->StaticMesh;
+
+			if (ProjectileMesh)
+			{
+				// Calculate the direction from the projectile to the player
+				FVector ReturnDirection = PlayerLocation - Projectile->GetActorLocation();
+				ReturnDirection.Normalize();
+
+				// Set the linear velocity to move the projectile towards the player
+				float ReturnSpeed = 2000.0f; // Adjust the speed as needed
+				ProjectileMesh->SetPhysicsLinearVelocity(ReturnDirection * ReturnSpeed);
+			}
+		}
+	}
+
+	// Set a timer to destroy the projectile mesh components after a delay
+	FTimerHandle TimerHandle;
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &AMyProjectCharacter::DeleteUltProjectiles, 5.0f, false);
+}
+
+void AMyProjectCharacter::DeleteUltProjectiles()
+{
+	// Destroy the projectiles
+	for (AProjectile* Projectile : SpawnedProjectiles)
+	{
+		if (Projectile)
+		{
+			Projectile->Destroy();
+		}
+	}
+	SpawnedProjectiles.Empty(); // Clear the array
 }
 
 
@@ -267,6 +367,7 @@ void AMyProjectCharacter::UI()
 {
 
 	static bool talonQReady = true;
+	static bool talonUltReady = true;
 
 	// Display a message indicating that you can shoot
 	if (canShoot && talonQReady)
@@ -281,6 +382,20 @@ void AMyProjectCharacter::UI()
 		GEngine->ClearOnScreenDebugMessages();
 		
 	}
+
+	// Display a message indicating that you can use your ultimate
+	if (canUlt && talonUltReady)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("Ultimate Ability Available")));
+		talonUltReady = false;
+	}
+	else if (!canUlt)
+	{
+		// Remove the message when you can't use your ultimate
+		talonUltReady = true;
+		GEngine->ClearOnScreenDebugMessages();
+	}
+	
 }
 
 

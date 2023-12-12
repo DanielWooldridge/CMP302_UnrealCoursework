@@ -78,9 +78,13 @@ protected:
 	/* Called for Ultimate input */
 	void Ultimate(const FInputActionValue& Value);
 
-	/* Function to return projectiles to the player and then deletes them */
+	/* Function to return projectiles to the player and then deletes them - For Talon Q Ability */
 	void ReturnProjectiles();
 	void DeleteProjectiles();
+
+	/* Function to return projectiles to the player and then deletes them - For Talon R Ability */
+	void ReturnUltProjectiles();
+	void DeleteUltProjectiles();
 
 	/* UI Function */
 	void UI();
@@ -90,12 +94,15 @@ protected:
 	AProjectile* middleShuriken;
 	AProjectile* rightShuriken;
 	AProjectile* leftShuriken;
+	float StandstillDistance;
 
-	/* Cooldown Timer */
-	float shootCooldown;
+	/* Cooldown Timers */
+	float shootCooldown;	
 	bool canShoot;
-	
-	ATalonQ* TalonQ; 
+	float ultimateCooldown;
+	bool canUlt;
+
+	//ATalonQ* TalonQ; 
 
 protected:
 	// APawn interface

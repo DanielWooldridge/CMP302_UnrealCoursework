@@ -11,7 +11,7 @@ AProjectile::AProjectile()
 
 
 	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Sphere Component"));
-	StaticMesh->SetWorldScale3D(FVector(10));
+	StaticMesh->SetWorldScale3D(FVector(5));
 	
 	
 	//UStaticMesh* meshToUse = Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), NULL, TEXT("/Script/Engine.StaticMesh'/Game/StarterContent/Shapes/Shape_Torus.Shape_Torus'")));
@@ -24,7 +24,7 @@ AProjectile::AProjectile()
 		StaticMesh->SetStaticMesh(meshToUse);
 	}
 
-
+	bIsUltimateProjectile = false;
 }
 
 // Called when the game starts or when spawned	
@@ -39,8 +39,19 @@ void AProjectile::BeginPlay()
 // Called every frame
 void AProjectile::Tick(float DeltaTime)
 {
-
 	Super::Tick(DeltaTime);
+
+	if (bIsUltimateProjectile)
+	{
+		FVector PlayerLocation = GetWorld()->GetFirstPlayerController()->GetPawn()->GetActorLocation();
+		float DistanceToPlayer = FVector::Dist(GetActorLocation(), PlayerLocation);
+
+		if (DistanceToPlayer >= StandstillDistance)
+		{
+			// Cut linear velocity but keep angular velocity (rotation)
+			StaticMesh->SetPhysicsLinearVelocity(FVector::ZeroVector);
+		}
+	}
 }
 
 

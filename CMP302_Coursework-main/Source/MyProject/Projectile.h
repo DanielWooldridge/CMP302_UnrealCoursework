@@ -32,6 +32,12 @@ public:
 	//Variables
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* StaticMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Projectile")
+	float StandstillDistance;
+
+	// Flag indicating whether it's an ultimate projectile
+	bool bIsUltimateProjectile;
 	
 
 };

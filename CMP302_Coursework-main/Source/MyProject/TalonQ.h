@@ -41,9 +41,13 @@ public:
 
 	/* Projecile */
 	TArray<AProjectile*> SpawnedProjectiles;
+	AProjectile* middleShuriken;
+	AProjectile* rightShuriken;
+	AProjectile* leftShuriken;
 
 	/* Cooldown Timer */
 	float shootCooldown;
 	bool canShoot;
+
 
 };

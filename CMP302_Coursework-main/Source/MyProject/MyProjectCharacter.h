@@ -16,6 +16,10 @@
 
 // Talon Q Shoot Header Files
 #include "TalonQ.h"
+
+// Mana Class Header File
+#include "UMana.h"
+
 #include "MyProjectCharacter.generated.h"
 
 
@@ -56,6 +60,8 @@ class AMyProjectCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* ultimateAction;
 
+	UPROPERTY()
+	ATalonQ* TalonQ;
 	
 public:
 	AMyProjectCharacter();
@@ -86,6 +92,8 @@ protected:
 	void ReturnUltProjectiles();
 	void DeleteUltProjectiles();
 
+	FVector getPlayerPosition();
+
 	/* UI Function */
 	void UI();
 
@@ -102,8 +110,12 @@ protected:
 	bool canShoot;
 	float ultimateCooldown;
 	bool canUlt;
+	bool returnStaticPlayer;
 
-	//ATalonQ* TalonQ; 
+	/* Mana class Variables */
+	AUMana* characterMana;
+	float shootMana;
+	float ultMana;
 
 protected:
 	// APawn interface

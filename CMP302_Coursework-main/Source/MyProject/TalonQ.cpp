@@ -44,7 +44,7 @@ void ATalonQ::ShootQ(const FInputActionValue& Value)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Shoot Successfull!"));
 
-		/////// - READ - THE COOLDOWN FEATURE DOESNT WORK - DOESNT DELTE AFTER RETURNING TO PLAYER - doesnt apply damage////
+		/////// - READ -  doesn't apply damage - GetRotation orks for right and left shuriken but not midddle one, its also not showing message, when this is implemented this is done////
 
 		// Calculate positions and rotations for middle, left, and right projectiles
 		FVector PlayerLocation = GetActorLocation();
@@ -60,15 +60,18 @@ void ATalonQ::ShootQ(const FInputActionValue& Value)
 		FRotator RotationRight = PlayerForwardVector.RotateAngleAxis(220.0f, FVector::UpVector).Rotation();
 
 		// Spawn middle projectile
-		AProjectile* middleShuriken = GetWorld()->SpawnActor<AProjectile>(LocationMiddle, RotationMiddle);
+		middleShuriken = GetWorld()->SpawnActor<AProjectile>(LocationMiddle, RotationMiddle);
+		middleShuriken->getAngleRotation();
 		middleShuriken->StaticMesh->SetPhysicsLinearVelocity(PlayerForwardVector * 2000.0f); // Adjust speed as needed
 
 		// Spawn left projectile
-		AProjectile* leftShuriken = GetWorld()->SpawnActor<AProjectile>(LocationLeft, RotationLeft);
+		leftShuriken = GetWorld()->SpawnActor<AProjectile>(LocationLeft, RotationLeft);
+		leftShuriken->getAngleRotation();
 		leftShuriken->StaticMesh->SetPhysicsLinearVelocity(leftShuriken->GetActorRightVector() * 2000.0f); // Adjust speed as needed
 
 		// Spawn right projectile
-		AProjectile* rightShuriken = GetWorld()->SpawnActor<AProjectile>(LocationRight, RotationRight);
+		rightShuriken = GetWorld()->SpawnActor<AProjectile>(LocationRight, RotationRight);
+		rightShuriken->getAngleRotation();
 		rightShuriken->StaticMesh->SetPhysicsLinearVelocity(rightShuriken->GetActorRightVector() * 2000.0f); // Adjust speed as needed
 
 
@@ -77,7 +80,7 @@ void ATalonQ::ShootQ(const FInputActionValue& Value)
 		SpawnedProjectiles.Add(leftShuriken);
 		SpawnedProjectiles.Add(rightShuriken);
 
-		// Setting a timer to return the projectiles at desired time - 1 second
+		// Setting a timer to return the projectiles at desired time - .2 seconds
 		FTimerHandle TimerHandle;
 		GetWorldTimerManager().SetTimer(TimerHandle, this, &ATalonQ::ReturnProjectiles, 0.2f, false);
 
@@ -91,6 +94,7 @@ void ATalonQ::ShootQ(const FInputActionValue& Value)
 void ATalonQ::ReturnProjectiles()
 {
 	FVector PlayerLocation = GetActorLocation();
+
 
 	for (AProjectile* Projectile : SpawnedProjectiles)
 	{
@@ -127,7 +131,7 @@ void ATalonQ::DeleteProjectiles()
 	{
 		if (Projectile)
 		{
-			Projectile->MarkPendingKill();
+			Projectile->Destroy();
 		}
 	}
 	SpawnedProjectiles.Empty(); // Clear the array

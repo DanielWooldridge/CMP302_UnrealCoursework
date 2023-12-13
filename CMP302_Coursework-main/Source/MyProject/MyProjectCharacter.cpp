@@ -14,6 +14,11 @@
 //////////////////////////////////////////////////////////////////////////
 // AMyProjectCharacter
 
+
+// Notes:
+	// Mana is currently breaking my whole thing
+	// Get this done before you do anything tomorrow
+
 AMyProjectCharacter::AMyProjectCharacter()
 {
 	// Set size for collision capsule
@@ -50,7 +55,6 @@ AMyProjectCharacter::AMyProjectCharacter()
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 
-
 	canShoot = true;
 	shootCooldown = 3.f;
 
@@ -59,6 +63,11 @@ AMyProjectCharacter::AMyProjectCharacter()
 
 	StandstillDistance = 500.0f;
 
+	//returnStaticPlayer = true;
+
+	// Mana Object Decleration
+	shootMana = 20;
+	ultMana = 35;
 }
 
 void AMyProjectCharacter::Tick(float DeltaTime)
@@ -169,9 +178,13 @@ void AMyProjectCharacter::Look(const FInputActionValue& Value)
 
 void AMyProjectCharacter::Shoot(const FInputActionValue& Value)
 {
+	//TalonQ->ShootQ(Value);
 	
-	if (canShoot)
+	if (canShoot && characterMana->getCurrentMana() >= shootMana)
 	{
+
+		// Deduct mana cost
+		characterMana->modifyMana(-shootMana);
 		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Shoot Successfull!"));
 
 		/////// - READ -  doesn't apply damage - GetRotation orks for right and left shuriken but not midddle one, its also not showing message, when this is implemented this is done////
@@ -274,8 +287,9 @@ void AMyProjectCharacter::Ultimate(const FInputActionValue& Value)
 {
 	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("Ultimate here!")));
 
-	if (canUlt)
+	if (canUlt && characterMana->getCurrentMana() >= ultMana)
 	{
+		characterMana->modifyMana(-ultMana);
 
 		SetActorHiddenInGame(true);
 		SetActorEnableCollision(false);
@@ -284,7 +298,6 @@ void AMyProjectCharacter::Ultimate(const FInputActionValue& Value)
 		const float AngleIncrement = 360.0f / NumShurikens;
 
 		FVector PlayerLocation = GetActorLocation();
-		//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("Player Location: %s"), *PlayerLocation.ToString()));
 
 		// Create a separate array for ultimate projectiles
 		TArray<AProjectile*> UltimateProjectiles;
@@ -381,6 +394,7 @@ void AMyProjectCharacter::DeleteUltProjectiles()
 		}
 	}
 	SpawnedUltProjectiles.Empty(); // Clear the array
+	//returnStaticPlayer = true; // Sets this too true so you can recieve another static player positiuon when you press the ultimate button so shurikens dont ravel away from the new location
 }
 
 
@@ -416,8 +430,14 @@ void AMyProjectCharacter::UI()
 		talonUltReady = true;
 		GEngine->ClearOnScreenDebugMessages();
 	}
+
+	// Mana Text
+	//GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Blue, FString::Printf(TEXT("Mana: %.2f"), characterMana));
 	
 }
 
-
+FVector AMyProjectCharacter::getPlayerPosition()
+{
+	return GetWorld()->GetFirstPlayerController()->GetPawn()->GetActorLocation();
+}
 

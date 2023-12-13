@@ -56,7 +56,7 @@ class AMyProjectCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* ultimateAction;
 
-
+	
 public:
 	AMyProjectCharacter();
 	
@@ -91,6 +91,7 @@ protected:
 
 	/* Projectile */
 	TArray<AProjectile*> SpawnedProjectiles;
+	TArray<AProjectile*> SpawnedUltProjectiles;
 	AProjectile* middleShuriken;
 	AProjectile* rightShuriken;
 	AProjectile* leftShuriken;

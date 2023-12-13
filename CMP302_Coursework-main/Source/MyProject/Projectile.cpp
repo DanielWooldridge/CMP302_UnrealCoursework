@@ -1,6 +1,4 @@
 // Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Projectile.h"
 
 // Sets default values
@@ -25,6 +23,7 @@ AProjectile::AProjectile()
 	}
 
 	bIsUltimateProjectile = false;
+
 }
 
 // Called when the game starts or when spawned	
@@ -40,8 +39,7 @@ void AProjectile::BeginPlay()
 void AProjectile::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	if (bIsUltimateProjectile)
+	if (bIsUltimateProjectile && tempBool)
 	{
 		FVector PlayerLocation = GetWorld()->GetFirstPlayerController()->GetPawn()->GetActorLocation();
 		float DistanceToPlayer = FVector::Dist(GetActorLocation(), PlayerLocation);
@@ -50,14 +48,26 @@ void AProjectile::Tick(float DeltaTime)
 		{
 			// Cut linear velocity but keep angular velocity (rotation)
 			StaticMesh->SetPhysicsLinearVelocity(FVector::ZeroVector);
+			tempBool = false;
 		}
+
 	}
+	//hasHitPlayer();
 }
 
+void AProjectile::hasHitPlayer()
+{
+	if (this->GetActorLocation() == GetWorld()->GetFirstPlayerController()->GetPawn()->GetActorLocation() && !tempBool)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("HITTING!")));
+		this->Destroy();
+	}
+}
 
 void AProjectile::getAngleRotation()
 {
 	// Adding a rotation on the Z axis using Angular Velocity
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("Its calling this function")));
 	StaticMesh->SetPhysicsAngularVelocityInDegrees(FVector(0.0f, 0.0f, 400.0f), false, NAME_None);
 }
+
+

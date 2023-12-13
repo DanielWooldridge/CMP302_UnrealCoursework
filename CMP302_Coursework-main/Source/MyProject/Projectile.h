@@ -21,6 +21,7 @@ public:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	void getAngleRotation();
+	void hasHitPlayer();
 
 protected:
 
@@ -38,6 +39,8 @@ public:
 
 	// Flag indicating whether it's an ultimate projectile
 	bool bIsUltimateProjectile;
+
+	bool tempBool = true;
 	
 
 };

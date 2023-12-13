@@ -58,7 +58,7 @@ AMyProjectCharacter::AMyProjectCharacter()
 	ultimateCooldown = 3.f;
 
 	StandstillDistance = 500.0f;
-	
+
 }
 
 void AMyProjectCharacter::Tick(float DeltaTime)
@@ -170,8 +170,6 @@ void AMyProjectCharacter::Look(const FInputActionValue& Value)
 void AMyProjectCharacter::Shoot(const FInputActionValue& Value)
 {
 	
-
-
 	if (canShoot)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Shoot Successfull!"));
@@ -269,6 +267,8 @@ void AMyProjectCharacter::DeleteProjectiles()
 	SpawnedProjectiles.Empty(); // Clear the array
 }
 
+
+
 // ERROR WHEN RETURNING SHURIKENS - IF YOU GO CLOSER THEY RETURN - IF YOU DONT GO UP TO THE CERTAIN DISTANCE THEY DONT RETURN BUT ONCE YOU ARE IN THE VICINITY THEY RETURN
 void AMyProjectCharacter::Ultimate(const FInputActionValue& Value)
 {
@@ -276,10 +276,15 @@ void AMyProjectCharacter::Ultimate(const FInputActionValue& Value)
 
 	if (canUlt)
 	{
+
+		SetActorHiddenInGame(true);
+		SetActorEnableCollision(false);
+
 		const int32 NumShurikens = 12;
 		const float AngleIncrement = 360.0f / NumShurikens;
 
 		FVector PlayerLocation = GetActorLocation();
+		//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("Player Location: %s"), *PlayerLocation.ToString()));
 
 		// Create a separate array for ultimate projectiles
 		TArray<AProjectile*> UltimateProjectiles;
@@ -304,11 +309,14 @@ void AMyProjectCharacter::Ultimate(const FInputActionValue& Value)
 
 			// Add the ultimate projectile to the separate array
 			UltimateProjectiles.Add(UltimateShuriken);
+
 		}
 
 		// Add the ultimate projectiles array to the main SpawnedProjectiles array
-		SpawnedProjectiles.Append(UltimateProjectiles);
+		SpawnedUltProjectiles.Append(UltimateProjectiles);
+		SetActorEnableCollision(true);
 
+		
 		ultimateCooldown = 0.f;
 		canUlt = false;
 
@@ -324,7 +332,7 @@ void AMyProjectCharacter::ReturnUltProjectiles()
 	FVector PlayerLocation = GetActorLocation();
 
 
-	for (AProjectile* Projectile : SpawnedProjectiles)
+	for (AProjectile* Projectile : SpawnedUltProjectiles)
 	{
 		if (Projectile)
 		{
@@ -333,6 +341,7 @@ void AMyProjectCharacter::ReturnUltProjectiles()
 
 			if (ProjectileMesh)
 			{
+
 				// Calculate the direction from the projectile to the player
 				FVector ReturnDirection = PlayerLocation - Projectile->GetActorLocation();
 				ReturnDirection.Normalize();
@@ -341,25 +350,37 @@ void AMyProjectCharacter::ReturnUltProjectiles()
 				float ReturnSpeed = 2000.0f; // Adjust the speed as needed
 				ProjectileMesh->SetPhysicsLinearVelocity(ReturnDirection * ReturnSpeed);
 			}
+
+			// For deleting Projectiles one by one
+			/*if (Projectile->GetActorLocation() + 10 == GetWorld()->GetFirstPlayerController()->GetPawn()->GetActorLocation())
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("HITTING!")));
+				DeleteUltProjectiles();
+			}*/
+
+			
 		}
 	}
 
+	SetActorHiddenInGame(false);
+
 	// Set a timer to destroy the projectile mesh components after a delay
 	FTimerHandle TimerHandle;
-	GetWorldTimerManager().SetTimer(TimerHandle, this, &AMyProjectCharacter::DeleteUltProjectiles, 5.0f, false);
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &AMyProjectCharacter::DeleteUltProjectiles, 0.2f, false);
+	
 }
 
 void AMyProjectCharacter::DeleteUltProjectiles()
 {
 	// Destroy the projectiles
-	for (AProjectile* Projectile : SpawnedProjectiles)
+	for (AProjectile* Projectile : SpawnedUltProjectiles)
 	{
 		if (Projectile)
 		{
 			Projectile->Destroy();
 		}
 	}
-	SpawnedProjectiles.Empty(); // Clear the array
+	SpawnedUltProjectiles.Empty(); // Clear the array
 }
 
 

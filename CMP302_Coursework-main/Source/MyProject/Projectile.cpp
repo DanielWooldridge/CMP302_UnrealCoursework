@@ -33,6 +33,8 @@ void AProjectile::BeginPlay()
 	StaticMesh->SetSimulatePhysics(true);
 	StaticMesh->SetEnableGravity(false);
 
+	// Bind the OnComponentHit event
+	StaticMesh->OnComponentHit.AddDynamic(this, &AProjectile::OnProjectileHit);
 }
 
 // Called every frame
@@ -68,6 +70,24 @@ void AProjectile::getAngleRotation()
 {
 	// Adding a rotation on the Z axis using Angular Velocity
 	StaticMesh->SetPhysicsAngularVelocityInDegrees(FVector(0.0f, 0.0f, 400.0f), false, NAME_None);
+}
+
+void AProjectile::OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	// Check if the hit actor is of type ACubeActor
+	ACubeActor* CubeActor = Cast<ACubeActor>(OtherActor);
+	if (CubeActor)
+	{
+		// Change the color of the cube when hit
+		UMaterialInstanceDynamic* DynMaterial = CubeActor->StaticCubeMesh->CreateAndSetMaterialInstanceDynamic(0);
+		if (DynMaterial)
+		{
+			DynMaterial->SetVectorParameterValue(TEXT("BaseColor"), FLinearColor::Red);
+		}
+
+		// Optionally, you can destroy the projectile after hitting the cube
+		this->Destroy();
+	}
 }
 
 

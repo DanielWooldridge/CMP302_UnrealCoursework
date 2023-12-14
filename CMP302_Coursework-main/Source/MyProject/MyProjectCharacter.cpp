@@ -311,8 +311,6 @@ void AMyProjectCharacter::DeleteProjectiles()
 }
 
 
-
-// ERROR WHEN RETURNING SHURIKENS - IF YOU GO CLOSER THEY RETURN - IF YOU DONT GO UP TO THE CERTAIN DISTANCE THEY DONT RETURN BUT ONCE YOU ARE IN THE VICINITY THEY RETURN
 void AMyProjectCharacter::Ultimate(const FInputActionValue& Value)
 {
 	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("Ultimate here!")));
@@ -345,7 +343,7 @@ void AMyProjectCharacter::Ultimate(const FInputActionValue& Value)
 				// Spawn the shuriken
 				AProjectile* UltimateShuriken = GetWorld()->SpawnActor<AProjectile>(SpawnLocation, SpawnRotation);
 				UltimateShuriken->getAngleRotation();
-				UltimateShuriken->StaticMesh->SetPhysicsLinearVelocity(UltimateShuriken->GetActorForwardVector() * 2000.0f); // Adjust speed as needed
+				UltimateShuriken->StaticMesh->SetPhysicsLinearVelocity(UltimateShuriken->GetActorForwardVector() * 4000.0f); // Adjust speed as needed
 
 				// Set the standstill distance for the spawned shuriken
 				UltimateShuriken->StandstillDistance = StandstillDistance;
@@ -421,6 +419,7 @@ void AMyProjectCharacter::ReturnUltProjectiles()
 	
 }
 
+
 void AMyProjectCharacter::DeleteUltProjectiles()
 {
 	// Destroy the projectiles
@@ -469,15 +468,15 @@ void AMyProjectCharacter::UI(float DeltaTime)
 		GEngine->ClearOnScreenDebugMessages();
 	}
 
-	// Mana Text
-	if (showManaRegen)
+	// Mana Text - randomly explodes tons of messages 
+	if (displayMana += DeltaTime >= 1)
 	{
-		displayMana += DeltaTime;
-
-		if (displayMana >= 2)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Blue, FString::Printf(TEXT("Mana: %.2f"), characterManaData->getMana()));
-		}
+		showManaRegen = true;
+	}
+	if (showManaRegen)
+	{	
+		GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Blue, FString::Printf(TEXT("Mana: %.2f"), characterManaData->getMana()));
+		showManaRegen = false;
 	}
 	
 }

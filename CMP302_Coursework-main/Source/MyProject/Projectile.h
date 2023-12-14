@@ -8,6 +8,9 @@
 #include "Engine/StaticMeshActor.h"
 #include "Components/SphereComponent.h"
 #include "Components/SceneComponent.h"
+#include "GameFramework/PlayerController.h"
+#include "Kismet/GameplayStatics.h"
+#include "CubeActor.h"
 #include "Projectile.generated.h"
 
 UCLASS()
@@ -22,6 +25,7 @@ public:
 	virtual void BeginPlay() override;
 	void getAngleRotation();
 	void hasHitPlayer();
+	void OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 protected:
 

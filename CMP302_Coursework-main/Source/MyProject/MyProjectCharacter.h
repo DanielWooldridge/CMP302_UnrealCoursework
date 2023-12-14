@@ -19,6 +19,8 @@
 
 // Mana Class Header File
 #include "UMana.h"
+#include "MyMana.h"
+#include "Kismet/GameplayStatics.h"
 
 #include "MyProjectCharacter.generated.h"
 
@@ -113,9 +115,15 @@ protected:
 	bool returnStaticPlayer;
 
 	/* Mana class Variables */
-	AUMana* characterMana;
+	/*UPROPERTY(EditAnywhere)
+	AUMana* characterMana;*/
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	UMyMana* characterManaData;
+
 	float shootMana;
 	float ultMana;
+	float manaRegenTimer;
 
 protected:
 	// APawn interface

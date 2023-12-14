@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "UMana.h"
 
 // Sets default values
@@ -8,8 +5,9 @@ AUMana::AUMana()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	maxMana = 100.0f;
-	currentMana = maxMana;
+
+	currentMana = 0.0f;
+	maxMana = 0.0f;
 
 }
 
@@ -17,7 +15,6 @@ AUMana::AUMana()
 void AUMana::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 // Called every frame
@@ -27,12 +24,60 @@ void AUMana::Tick(float DeltaTime)
 
 }
 
-void AUMana::modifyMana(float deltaMana)
+
+void AUMana::setMana(float newMana)
 {
-	currentMana = FMath::Clamp(currentMana + deltaMana, 0.0f, maxMana);
+	if ((currentMana = newMana) > maxMana)
+	{
+		currentMana = maxMana;
+	}
+	else
+	{
+		currentMana = newMana;
+	}
 }
 
-float AUMana::getCurrentMana() 
+float AUMana::getMana()
 {
 	return currentMana;
 }
+
+void AUMana::setMaxMana(float newMaxMana)
+{
+
+	maxMana = newMaxMana;
+	
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Debug Lines
+
+//float AUMana::getMaxMana(float tempMaxMana)
+//{
+//	tempMaxMana = maxMana;
+//	return tempMaxMana;
+//}
+//
+//void AUMana::modifyMana(float deltaMana)
+//{
+//	currentMana = FMath::Clamp(currentMana + deltaMana, 0.0f, maxMana);
+//}
+//
+//float AUMana::getCurrentMana() 
+//{
+//	return currentMana;
+//}

@@ -15,20 +15,26 @@ public:
 	// Sets default values for this actor's properties
 	AUMana();
 
-protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-	float getCurrentMana();
-	void modifyMana(float deltaMana);
+	//float getCurrentMana();
+	//void modifyMana(float deltaMana);
+	//float getMaxMana(float tempMaxMana);
 
-	UPROPERTY(VisibleAnywhere, Category = "Mana")
+	void setMana(float);
+	float getMana();
+	void setMaxMana(float);
+
+	UPROPERTY(EditAnywhere)
 	float maxMana;
 
-	UPROPERTY(VisibleAnywhere, Category = "Mana")
+	UPROPERTY(EditAnywhere)
 	float currentMana;
+
+
 
 };

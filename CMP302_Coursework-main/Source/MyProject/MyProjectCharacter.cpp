@@ -52,6 +52,10 @@ AMyProjectCharacter::AMyProjectCharacter()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
+	// Create a Mana Component
+	characterManaData = CreateDefaultSubobject<UMyMana>(TEXT("ManaData"));
+
+
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 
@@ -68,6 +72,9 @@ AMyProjectCharacter::AMyProjectCharacter()
 	// Mana Object Decleration
 	shootMana = 20;
 	ultMana = 35;
+	characterManaData->setMaxMana(100);
+	characterManaData->setMana(100);
+
 }
 
 void AMyProjectCharacter::Tick(float DeltaTime)
@@ -94,6 +101,17 @@ void AMyProjectCharacter::Tick(float DeltaTime)
 		}
 	}
 
+	manaRegenTimer += DeltaTime;
+
+	if (manaRegenTimer >= 1.0f) {
+
+		if (characterManaData->getMana() < 100)
+		{	
+			characterManaData->setMana(characterManaData->getMana() + 5);
+		}
+		manaRegenTimer = 0.0f;
+	}
+
 	UI();
 
 	
@@ -112,6 +130,8 @@ void AMyProjectCharacter::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
+
+
 
 }
 
@@ -180,55 +200,60 @@ void AMyProjectCharacter::Shoot(const FInputActionValue& Value)
 {
 	//TalonQ->ShootQ(Value);
 	
-	if (canShoot && characterMana->getCurrentMana() >= shootMana)
+	if (canShoot)
 	{
+		if (characterManaData->getMana() > shootMana)
+		{
+			characterManaData->setMana(characterManaData->getMana() - shootMana);
 
-		// Deduct mana cost
-		characterMana->modifyMana(-shootMana);
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Shoot Successfull!"));
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Shoot Successfull!"));
 
-		/////// - READ -  doesn't apply damage - GetRotation orks for right and left shuriken but not midddle one, its also not showing message, when this is implemented this is done////
-		
-		// Calculate positions and rotations for middle, left, and right projectiles
-		FVector PlayerLocation = GetActorLocation();
-		FVector PlayerForwardVector = GetActorForwardVector();
+			/////// - READ -  doesn't apply damage - GetRotation orks for right and left shuriken but not midddle one, its also not showing message, when this is implemented this is done////
 
-		FVector LocationMiddle = PlayerLocation + PlayerForwardVector * 100.0f; // Adjust distance from the player
-		FRotator RotationMiddle = PlayerForwardVector.Rotation();
+			// Calculate positions and rotations for middle, left, and right projectiles
+			FVector PlayerLocation = GetActorLocation();
+			FVector PlayerForwardVector = GetActorForwardVector();
 
-		FVector LocationLeft = PlayerLocation + PlayerForwardVector.RotateAngleAxis(-30.0f, FVector::UpVector) * 50.0f; // Adjust angle and distance
-		FRotator RotationLeft = PlayerForwardVector.RotateAngleAxis(-30.0f, FVector::UpVector).Rotation();
+			FVector LocationMiddle = PlayerLocation + PlayerForwardVector * 100.0f; // Adjust distance from the player
+			FRotator RotationMiddle = PlayerForwardVector.Rotation();
 
-		FVector LocationRight = PlayerLocation + PlayerForwardVector.RotateAngleAxis(220.0f, FVector::UpVector) * 50.0f; // Adjust angle and distance
-		FRotator RotationRight = PlayerForwardVector.RotateAngleAxis(220.0f, FVector::UpVector).Rotation();
+			FVector LocationLeft = PlayerLocation + PlayerForwardVector.RotateAngleAxis(-30.0f, FVector::UpVector) * 50.0f; // Adjust angle and distance
+			FRotator RotationLeft = PlayerForwardVector.RotateAngleAxis(-30.0f, FVector::UpVector).Rotation();
 
-		// Spawn middle projectile
-		middleShuriken = GetWorld()->SpawnActor<AProjectile>(LocationMiddle, RotationMiddle);
-		middleShuriken->getAngleRotation();
-		middleShuriken->StaticMesh->SetPhysicsLinearVelocity(PlayerForwardVector * 2000.0f); // Adjust speed as needed
+			FVector LocationRight = PlayerLocation + PlayerForwardVector.RotateAngleAxis(220.0f, FVector::UpVector) * 50.0f; // Adjust angle and distance
+			FRotator RotationRight = PlayerForwardVector.RotateAngleAxis(220.0f, FVector::UpVector).Rotation();
 
-		// Spawn left projectile
-		leftShuriken = GetWorld()->SpawnActor<AProjectile>(LocationLeft, RotationLeft);
-		leftShuriken->getAngleRotation();
-		leftShuriken->StaticMesh->SetPhysicsLinearVelocity(leftShuriken->GetActorRightVector() * 2000.0f); // Adjust speed as needed
+			// Spawn middle projectile
+			middleShuriken = GetWorld()->SpawnActor<AProjectile>(LocationMiddle, RotationMiddle);
+			middleShuriken->getAngleRotation();
+			middleShuriken->StaticMesh->SetPhysicsLinearVelocity(PlayerForwardVector * 2000.0f); // Adjust speed as needed
 
-		// Spawn right projectile
-		rightShuriken = GetWorld()->SpawnActor<AProjectile>(LocationRight, RotationRight);
-		rightShuriken->getAngleRotation();
-		rightShuriken->StaticMesh->SetPhysicsLinearVelocity(rightShuriken->GetActorRightVector() * 2000.0f); // Adjust speed as needed
+			// Spawn left projectile
+			leftShuriken = GetWorld()->SpawnActor<AProjectile>(LocationLeft, RotationLeft);
+			leftShuriken->getAngleRotation();
+			leftShuriken->StaticMesh->SetPhysicsLinearVelocity(leftShuriken->GetActorRightVector() * 2000.0f); // Adjust speed as needed
+
+			// Spawn right projectile
+			rightShuriken = GetWorld()->SpawnActor<AProjectile>(LocationRight, RotationRight);
+			rightShuriken->getAngleRotation();
+			rightShuriken->StaticMesh->SetPhysicsLinearVelocity(rightShuriken->GetActorRightVector() * 2000.0f); // Adjust speed as needed
 
 
-		// Adding shurikens to the array
-		SpawnedProjectiles.Add(middleShuriken);
-		SpawnedProjectiles.Add(leftShuriken);
-		SpawnedProjectiles.Add(rightShuriken);
-		
-		// Setting a timer to return the projectiles at desired time - .2 seconds
-		FTimerHandle TimerHandle;
-		GetWorldTimerManager().SetTimer(TimerHandle, this, &AMyProjectCharacter::ReturnProjectiles, 0.2f, false);
+			// Adding shurikens to the array
+			SpawnedProjectiles.Add(middleShuriken);
+			SpawnedProjectiles.Add(leftShuriken);
+			SpawnedProjectiles.Add(rightShuriken);
 
-		shootCooldown = 0.f;
-		canShoot = false;
+			// Setting a timer to return the projectiles at desired time - .2 seconds
+			FTimerHandle TimerHandle;
+			GetWorldTimerManager().SetTimer(TimerHandle, this, &AMyProjectCharacter::ReturnProjectiles, 0.2f, false);
+
+			shootCooldown = 0.f;
+			canShoot = false;
+		}
+		else {
+			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, FString::Printf(TEXT("Not Enough Mana!")));
+		}
 	}
 	
 }
@@ -287,55 +312,63 @@ void AMyProjectCharacter::Ultimate(const FInputActionValue& Value)
 {
 	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("Ultimate here!")));
 
-	if (canUlt && characterMana->getCurrentMana() >= ultMana)
+	if (canUlt)
 	{
-		characterMana->modifyMana(-ultMana);
-
-		SetActorHiddenInGame(true);
-		SetActorEnableCollision(false);
-
-		const int32 NumShurikens = 12;
-		const float AngleIncrement = 360.0f / NumShurikens;
-
-		FVector PlayerLocation = GetActorLocation();
-
-		// Create a separate array for ultimate projectiles
-		TArray<AProjectile*> UltimateProjectiles;
-
-		for (int32 i = 0; i < NumShurikens; ++i)
+		
+		if (characterManaData->getMana() > ultMana)
 		{
-			// Calculate spawn location and rotation for each shuriken
-			float AngleInRadians = FMath::DegreesToRadians(i * AngleIncrement);
-			FVector SpawnLocation = PlayerLocation + FVector(FMath::Cos(AngleInRadians), FMath::Sin(AngleInRadians), 0.0f) * 100.0f;
-			FRotator SpawnRotation = FRotationMatrix::MakeFromX(PlayerLocation - SpawnLocation).Rotator();
+			characterManaData->setMana(characterManaData->getMana() - ultMana);
 
-			// Spawn the shuriken
-			AProjectile* UltimateShuriken = GetWorld()->SpawnActor<AProjectile>(SpawnLocation, SpawnRotation);
-			UltimateShuriken->getAngleRotation();
-			UltimateShuriken->StaticMesh->SetPhysicsLinearVelocity(UltimateShuriken->GetActorForwardVector() * 2000.0f); // Adjust speed as needed
+			SetActorHiddenInGame(true);
+			SetActorEnableCollision(false);
 
-			// Set the standstill distance for the spawned shuriken
-			UltimateShuriken->StandstillDistance = StandstillDistance;
+			const int32 NumShurikens = 12;
+			const float AngleIncrement = 360.0f / NumShurikens;
 
-			// Set the flag for ultimate projectiles
-			UltimateShuriken->bIsUltimateProjectile = true;
+			FVector PlayerLocation = GetActorLocation();
 
-			// Add the ultimate projectile to the separate array
-			UltimateProjectiles.Add(UltimateShuriken);
+			// Create a separate array for ultimate projectiles
+			TArray<AProjectile*> UltimateProjectiles;
 
+			for (int32 i = 0; i < NumShurikens; ++i)
+			{
+				// Calculate spawn location and rotation for each shuriken
+				float AngleInRadians = FMath::DegreesToRadians(i * AngleIncrement);
+				FVector SpawnLocation = PlayerLocation + FVector(FMath::Cos(AngleInRadians), FMath::Sin(AngleInRadians), 0.0f) * 100.0f;
+				FRotator SpawnRotation = FRotationMatrix::MakeFromX(PlayerLocation - SpawnLocation).Rotator();
+
+				// Spawn the shuriken
+				AProjectile* UltimateShuriken = GetWorld()->SpawnActor<AProjectile>(SpawnLocation, SpawnRotation);
+				UltimateShuriken->getAngleRotation();
+				UltimateShuriken->StaticMesh->SetPhysicsLinearVelocity(UltimateShuriken->GetActorForwardVector() * 2000.0f); // Adjust speed as needed
+
+				// Set the standstill distance for the spawned shuriken
+				UltimateShuriken->StandstillDistance = StandstillDistance;
+
+				// Set the flag for ultimate projectiles
+				UltimateShuriken->bIsUltimateProjectile = true;
+
+				// Add the ultimate projectile to the separate array
+				UltimateProjectiles.Add(UltimateShuriken);
+
+			}
+
+			// Add the ultimate projectiles array to the main SpawnedProjectiles array
+			SpawnedUltProjectiles.Append(UltimateProjectiles);
+			SetActorEnableCollision(true);
+
+
+			ultimateCooldown = 0.f;
+			canUlt = false;
+
+			// Set a timer to return the ultimate projectiles at the desired time - 2 seconds
+			FTimerHandle TimerHandle;
+			GetWorldTimerManager().SetTimer(TimerHandle, this, &AMyProjectCharacter::ReturnUltProjectiles, 2.f, false);
 		}
 
-		// Add the ultimate projectiles array to the main SpawnedProjectiles array
-		SpawnedUltProjectiles.Append(UltimateProjectiles);
-		SetActorEnableCollision(true);
-
-		
-		ultimateCooldown = 0.f;
-		canUlt = false;
-
-		// Set a timer to return the ultimate projectiles at the desired time - 2 seconds
-		FTimerHandle TimerHandle;
-		GetWorldTimerManager().SetTimer(TimerHandle, this, &AMyProjectCharacter::ReturnUltProjectiles, 2.f, false);
+		else {
+			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, FString::Printf(TEXT("Not Enough Mana!")));
+		}
 	}
 }
 

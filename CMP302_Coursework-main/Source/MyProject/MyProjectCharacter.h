@@ -97,7 +97,7 @@ protected:
 	FVector getPlayerPosition();
 
 	/* UI Function */
-	void UI();
+	void UI(float DeltaTime);
 
 	/* Projectile */
 	TArray<AProjectile*> SpawnedProjectiles;
@@ -124,6 +124,8 @@ protected:
 	float shootMana;
 	float ultMana;
 	float manaRegenTimer;
+	float displayMana;
+	bool showManaRegen;
 
 protected:
 	// APawn interface

@@ -60,10 +60,10 @@ AMyProjectCharacter::AMyProjectCharacter()
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 
 	canShoot = true;
-	shootCooldown = 3.f;
+	shootCooldown = 3.0f;
 
 	canUlt = true;
-	ultimateCooldown = 3.f;
+	ultimateCooldown = 3.0f;
 
 	StandstillDistance = 500.0f;
 
@@ -74,11 +74,16 @@ AMyProjectCharacter::AMyProjectCharacter()
 	ultMana = 35;
 	characterManaData->setMaxMana(100);
 	characterManaData->setMana(100);
-
+	displayMana = 1.0f;
+	showManaRegen = true;
 }
 
 void AMyProjectCharacter::Tick(float DeltaTime)
 {
+
+	UI(DeltaTime);
+
+
 	if (!canShoot)
 	{
 		shootCooldown += DeltaTime;
@@ -112,7 +117,7 @@ void AMyProjectCharacter::Tick(float DeltaTime)
 		manaRegenTimer = 0.0f;
 	}
 
-	UI();
+	
 
 	
 }
@@ -431,7 +436,7 @@ void AMyProjectCharacter::DeleteUltProjectiles()
 }
 
 
-void AMyProjectCharacter::UI()
+void AMyProjectCharacter::UI(float DeltaTime)
 {
 
 	static bool talonQReady = true;
@@ -465,7 +470,15 @@ void AMyProjectCharacter::UI()
 	}
 
 	// Mana Text
-	//GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Blue, FString::Printf(TEXT("Mana: %.2f"), characterMana));
+	if (showManaRegen)
+	{
+		displayMana += DeltaTime;
+
+		if (displayMana >= 2)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Blue, FString::Printf(TEXT("Mana: %.2f"), characterManaData->getMana()));
+		}
+	}
 	
 }
 

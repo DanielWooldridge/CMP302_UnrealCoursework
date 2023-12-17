@@ -7,13 +7,10 @@ AProjectile::AProjectile()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-
-	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Sphere Component"));
+	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Component"));
+	SetRootComponent(StaticMesh);
 	StaticMesh->SetWorldScale3D(FVector(5));
 	
-	
-	//UStaticMesh* meshToUse = Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), NULL, TEXT("/Script/Engine.StaticMesh'/Game/StarterContent/Shapes/Shape_Torus.Shape_Torus'")));
-
 	UStaticMesh* meshToUse = Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), NULL, TEXT("/Script/Engine.StaticMesh'/Game/StarterContent/Shapes/ShurikenModelMesh.ShurikenModelMesh'")));
 	
 
@@ -24,6 +21,11 @@ AProjectile::AProjectile()
 
 	bIsUltimateProjectile = false;
 
+	StaticMesh->SetCollisionProfileName("OverlapAllDynamic");
+	StaticMesh->SetCollisionResponseToAllChannels(ECR_Overlap);
+	StaticMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	StaticMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+	
 }
 
 // Called when the game starts or when spawned	
@@ -32,9 +34,8 @@ void AProjectile::BeginPlay()
 	Super::BeginPlay();
 	StaticMesh->SetSimulatePhysics(true);
 	StaticMesh->SetEnableGravity(false);
+	StaticMesh->OnComponentBeginOverlap.AddDynamic(this, &AProjectile::OnOverlap);
 
-	// Bind the OnComponentHit event
-	StaticMesh->OnComponentHit.AddDynamic(this, &AProjectile::OnProjectileHit);
 }
 
 // Called every frame
@@ -72,22 +73,17 @@ void AProjectile::getAngleRotation()
 	StaticMesh->SetPhysicsAngularVelocityInDegrees(FVector(0.0f, 0.0f, 400.0f), false, NAME_None);
 }
 
-void AProjectile::OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+
+
+void AProjectile::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	// Check if the hit actor is of type ACubeActor
-	ACubeActor* CubeActor = Cast<ACubeActor>(OtherActor);
-	if (CubeActor)
+	UE_LOG(LogTemp, Warning, TEXT("COLLISION with %s"), *OtherActor->GetName());
+	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::Printf(TEXT("COLLLLISSSIOOONNNNNNN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")));
+
+	if (AProjectile* projectile = Cast<AProjectile>(OtherActor))
 	{
-		// Change the color of the cube when hit
-		UMaterialInstanceDynamic* DynMaterial = CubeActor->StaticCubeMesh->CreateAndSetMaterialInstanceDynamic(0);
-		if (DynMaterial)
-		{
-			DynMaterial->SetVectorParameterValue(TEXT("BaseColor"), FLinearColor::Red);
-		}
-
-		// Optionally, you can destroy the projectile after hitting the cube
-		this->Destroy();
+		return;
 	}
+	OtherActor->Destroy();
+
 }
-
-

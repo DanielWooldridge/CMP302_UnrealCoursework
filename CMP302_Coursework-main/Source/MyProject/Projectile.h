@@ -10,6 +10,8 @@
 #include "Components/SceneComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
+#include "Components/BoxComponent.h"
+#include "Components/PrimitiveComponent.h"
 #include "CubeActor.h"
 #include "Projectile.generated.h"
 
@@ -25,7 +27,8 @@ public:
 	virtual void BeginPlay() override;
 	void getAngleRotation();
 	void hasHitPlayer();
-	void OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	UFUNCTION()
+	void OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 protected:
 
@@ -40,6 +43,12 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Projectile")
 	float StandstillDistance;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UBoxComponent* boxCollider;
+
+	
+
 
 	// Flag indicating whether it's an ultimate projectile
 	bool bIsUltimateProjectile;

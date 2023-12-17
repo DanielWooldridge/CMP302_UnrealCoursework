@@ -14,7 +14,7 @@
 //////////////////////////////////////////////////////////////////////////
 // AMyProjectCharacter
 
-
+ 
 // Notes:
 	// Mana is currently breaking my whole thing
 	// Get this done before you do anything tomorrow
@@ -343,7 +343,7 @@ void AMyProjectCharacter::Ultimate(const FInputActionValue& Value)
 				// Spawn the shuriken
 				AProjectile* UltimateShuriken = GetWorld()->SpawnActor<AProjectile>(SpawnLocation, SpawnRotation);
 				UltimateShuriken->getAngleRotation();
-				UltimateShuriken->StaticMesh->SetPhysicsLinearVelocity(UltimateShuriken->GetActorForwardVector() * 4000.0f); // Adjust speed as needed
+				UltimateShuriken->StaticMesh->SetPhysicsLinearVelocity(UltimateShuriken->GetActorForwardVector() * 2000.0f); // Adjust speed as needed
 
 				// Set the standstill distance for the spawned shuriken
 				UltimateShuriken->StandstillDistance = StandstillDistance;

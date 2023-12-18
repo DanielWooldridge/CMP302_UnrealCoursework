@@ -32,24 +32,29 @@ void UMyMana::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponen
 	// ...
 }
 
-
+// Sets the Players Mana 
 void UMyMana::setMana(float newMana)
 {
+	// If the Mana is set to more than the max mana return the max mana
+	// This is used when the regenerated Mana outgrows the max mana - it will be set back to the max
 	if ((currentMana = newMana) > maxMana)
 	{
 		currentMana = maxMana;
 	}
 	else
 	{
-		currentMana = newMana;
+		currentMana = newMana; // When using an ability that costs mana - It will set the current mana to the new mana value
 	}
 }
 
+// Gets the Players Mana
 float UMyMana::getMana()
 {
 	return currentMana;
 }
 
+// Sets the max Mana for that character
+// Do this so that if new characters were added you can use this class and change the mana data
 void UMyMana::setMaxMana(float newMaxMana)
 {
 

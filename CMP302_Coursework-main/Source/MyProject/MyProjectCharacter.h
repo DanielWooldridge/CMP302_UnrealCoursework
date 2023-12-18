@@ -14,11 +14,8 @@
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMeshActor.h"
 
-// Talon Q Shoot Header Files
-#include "TalonQ.h"
 
 // Mana Class Header File
-#include "UMana.h"
 #include "MyMana.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -54,16 +51,15 @@ class AMyProjectCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* LookAction;
 
-	/* Action Input */
+	/* Action Input - Regular Shooting Ability */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* shootAction;
 	
-	/* Action Input */
+	/* Action Input - Ultimate Ability */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* ultimateAction;
 
-	UPROPERTY()
-	ATalonQ* TalonQ;
+
 	
 public:
 	AMyProjectCharacter();
@@ -86,46 +82,41 @@ protected:
 	/* Called for Ultimate input */
 	void Ultimate(const FInputActionValue& Value);
 
-	/* Function to return projectiles to the player and then deletes them - For Talon Q Ability */
+	/* Function to return projectiles to the player and then deletes them - For Regular Shooting Ability */
 	void ReturnProjectiles();
 	void DeleteProjectiles();
 
-	/* Function to return projectiles to the player and then deletes them - For Talon R Ability */
+	/* Function to return projectiles to the player and then deletes them - For Ultimate Ability */
 	void ReturnUltProjectiles();
 	void DeleteUltProjectiles();
-
-	FVector getPlayerPosition();
 
 	/* UI Function */
 	void UI(float DeltaTime);
 
-	/* Projectile */
-	TArray<AProjectile*> SpawnedProjectiles;
-	TArray<AProjectile*> SpawnedUltProjectiles;
-	AProjectile* middleShuriken;
-	AProjectile* rightShuriken;
-	AProjectile* leftShuriken;
-	float StandstillDistance;
+	/* Projectile Class Variables */
+	TArray<AProjectile*> SpawnedProjectiles;	// Holds the spawned projectiles from the regular shooting ability
+	TArray<AProjectile*> SpawnedUltProjectiles; // Holds the spawned projectiles from the Ultimate ability
+	AProjectile* middleShuriken;				// Create variables to hold the data for the different shurikens in the regular Shoot ability
+	AProjectile* rightShuriken;		
+	AProjectile* leftShuriken;		
+	float StandstillDistance;					// Distance of which the shurikens come to a standstill
 
 	/* Cooldown Timers */
-	float shootCooldown;	
+	float shootCooldown;	// Cooldowns for the Regular shoot ability
 	bool canShoot;
-	float ultimateCooldown;
+	float ultimateCooldown;	// Cooldowns for the Ultimate ability
 	bool canUlt;
-	bool returnStaticPlayer;
+	
 
 	/* Mana class Variables */
-	/*UPROPERTY(EditAnywhere)
-	AUMana* characterMana;*/
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	UMyMana* characterManaData;
+	UMyMana* characterManaData; // Holds the players mana
 
-	float shootMana;
-	float ultMana;
-	float manaRegenTimer;
-	float displayMana;
-	bool showManaRegen;
+	float shootMana;		// The mana cost for using the Regular shoot ability
+	float ultMana;			// The mana cost for using the Ultimate ability	
+	float manaRegenTimer;	// The Timer which is used for the Mana regeneration cooldown
+	float displayMana;		// Display and Timer for Mana
+	bool showManaRegen;	
 
 protected:
 	// APawn interface

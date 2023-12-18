@@ -24,10 +24,12 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	void setMana(float);
+	// Create functions that will handle the mana data
+	void setMana(float);	
 	float getMana();
 	void setMaxMana(float);
 
+	// Variables
 	UPROPERTY(EditAnywhere)
 	float maxMana;
 

@@ -59,22 +59,24 @@ AMyProjectCharacter::AMyProjectCharacter()
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 
+	// Setup Cooldown Variables
 	canShoot = true;
 	shootCooldown = 3.0f;
 
 	canUlt = true;
 	ultimateCooldown = 3.0f;
 
+	// Setup the distance in which the projectiles will stop and spin around the player
 	StandstillDistance = 500.0f;
 
-	//returnStaticPlayer = true;
-
 	// Mana Object Decleration
-	shootMana = 20;
-	ultMana = 35;
-	characterManaData->setMaxMana(100);
-	characterManaData->setMana(100);
-	displayMana = 1.0f;
+	shootMana = 20;							// Shoot mana Cost
+	ultMana = 35;							// Ult mana cost
+	characterManaData->setMaxMana(100);		// Setting the Players Max Mana
+	characterManaData->setMana(100);		// Setting the Players Starting Mana
+
+	// Setup Display for Mana
+	displayMana = 1.0f;						
 	showManaRegen = true;
 }
 
@@ -83,35 +85,44 @@ void AMyProjectCharacter::Tick(float DeltaTime)
 
 	UI(DeltaTime);
 
-
+	// This simulates a simple Cooldown System for the Players Abilities
+	// If the canShoot == false
 	if (!canShoot)
 	{
+		// Set the Shoot cooldown float variable to += DeltaTime 
 		shootCooldown += DeltaTime;
 
+		// When the Shoot Cooldown is greater or equal to 3
 		if (shootCooldown >= 3.0f)
 		{
-			shootCooldown = 3.0f; // Ensure the cooldown doesn't exceed the maximum value
+			// Ensure the cooldown doesn't exceed the maximum value
+			shootCooldown = 3.0f;
+			// Set the canShoot value too true - This allows the player to then use their regular shoot ability
 			canShoot = true;
 		}
 	}
 
+
 	if (!canUlt)
 	{
 		ultimateCooldown += DeltaTime;
-
 		if (ultimateCooldown >= 3.0f)
 		{
-			ultimateCooldown = 3.0f; // Ensure the cooldown doesn't exceed the maximum value
+			ultimateCooldown = 3.0f;
 			canUlt = true;
 		}
 	}
 
 	manaRegenTimer += DeltaTime;
 
+	// This simulates a basic Mana Regeneration Feature
+	// When the ManaRegenTimer is greater or equal to 1
 	if (manaRegenTimer >= 1.0f) {
 
+		// When the Characters Mana is less than 100
 		if (characterManaData->getMana() < 100)
 		{	
+			// Add 5 to your characters Mana 
 			characterManaData->setMana(characterManaData->getMana() + 5);
 		}
 		manaRegenTimer = 0.0f;
@@ -157,9 +168,9 @@ void AMyProjectCharacter::SetupPlayerInputComponent(class UInputComponent* Playe
 		//Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMyProjectCharacter::Look);
 		//Shooting
-		EnhancedInputComponent->BindAction(shootAction, ETriggerEvent::Triggered, this, &AMyProjectCharacter::Shoot);
+		EnhancedInputComponent->BindAction(shootAction, ETriggerEvent::Triggered, this, &AMyProjectCharacter::Shoot);		// Calls the Players Regular Ability
 		//Ultimate
-		EnhancedInputComponent->BindAction(ultimateAction, ETriggerEvent::Triggered, this, &AMyProjectCharacter::Ultimate);
+		EnhancedInputComponent->BindAction(ultimateAction, ETriggerEvent::Triggered, this, &AMyProjectCharacter::Ultimate); // Calls the Players Ultimate Ability
 	
 	}
 
@@ -201,47 +212,49 @@ void AMyProjectCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
+// This is the Players Standard Ability
 void AMyProjectCharacter::Shoot(const FInputActionValue& Value)
 {
-	//TalonQ->ShootQ(Value);
-	
+	// If the Player can Shoot - Cooldown Feature
 	if (canShoot)
 	{
+		// And if the Player has enough Mana to Cast the Regular Ability
 		if (characterManaData->getMana() > shootMana)
 		{
+			// Take the Shoot Mana Cost away from the Players current Mana
 			characterManaData->setMana(characterManaData->getMana() - shootMana);
 
-			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Shoot Successfull!"));
+			//AbilityUsed->ShootShurikens();
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Q Ability Cast"));
 
-			/////// - READ -  doesn't apply damage - GetRotation orks for right and left shuriken but not midddle one, its also not showing message, when this is implemented this is done////
+			FVector PlayerLocation = GetActorLocation();					// Get the Players Current Location
+			FVector PlayerForwardVector = GetActorForwardVector();			// Get the Players Current Forward Vector (The direction they are looking)
+			
+			// Middle Shuriken Values
+			FVector LocationMiddle = PlayerLocation + PlayerForwardVector * 100.0f;	 // Shoot the Middle Projectile that will Travel 100 units in front of the player
+			FRotator RotationMiddle = PlayerForwardVector.Rotation();				 // Set the Middle Projectiles Rotation to equal the Players Forward Vector
 
-			// Calculate positions and rotations for middle, left, and right projectiles
-			FVector PlayerLocation = GetActorLocation();
-			FVector PlayerForwardVector = GetActorForwardVector();
+			FVector LocationLeft = PlayerLocation + PlayerForwardVector.RotateAngleAxis(-30.0f, FVector::UpVector) * 50.0f;		// Shoot the Left Projectile that will travel 50 units away from the Player and 30 degrees rotated from the Players Forward Vector 
+			FRotator RotationLeft = PlayerForwardVector.RotateAngleAxis(-30.0f, FVector::UpVector).Rotation();					// Set the Left Projectiles Rotation to equal the Players Forward Vector rotated -30 degrees around the up vector
 
-			FVector LocationMiddle = PlayerLocation + PlayerForwardVector * 100.0f; // Adjust distance from the player
-			FRotator RotationMiddle = PlayerForwardVector.Rotation();
-
-			FVector LocationLeft = PlayerLocation + PlayerForwardVector.RotateAngleAxis(-30.0f, FVector::UpVector) * 50.0f; // Adjust angle and distance
-			FRotator RotationLeft = PlayerForwardVector.RotateAngleAxis(-30.0f, FVector::UpVector).Rotation();
-
-			FVector LocationRight = PlayerLocation + PlayerForwardVector.RotateAngleAxis(220.0f, FVector::UpVector) * 50.0f; // Adjust angle and distance
-			FRotator RotationRight = PlayerForwardVector.RotateAngleAxis(220.0f, FVector::UpVector).Rotation();
-
+			FVector LocationRight = PlayerLocation + PlayerForwardVector.RotateAngleAxis(220.0f, FVector::UpVector) * 50.0f;	
+			FRotator RotationRight = PlayerForwardVector.RotateAngleAxis(220.0f, FVector::UpVector).Rotation();					
+				
 			// Spawn middle projectile
-			middleShuriken = GetWorld()->SpawnActor<AProjectile>(LocationMiddle, RotationMiddle);
-			middleShuriken->getAngleRotation();
-			middleShuriken->StaticMesh->SetPhysicsLinearVelocity(PlayerForwardVector * 2000.0f); // Adjust speed as needed
+			middleShuriken = GetWorld()->SpawnActor<AProjectile>(LocationMiddle, RotationMiddle);					// Spawn in the Middle Projectile with the location, rotation and distance it will travel from the Player
+			middleShuriken->getAngleRotation();																		// Set the Middle Projectile to Spin using Angular Velocity
+			middleShuriken->StaticMesh->SetPhysicsLinearVelocity(PlayerForwardVector * 2000.0f);					// Now Set the Moddle Projectile to have a linear Velocity of 2000 so that it moves in the location and orientation we have set it too
 
 			// Spawn left projectile
-			leftShuriken = GetWorld()->SpawnActor<AProjectile>(LocationLeft, RotationLeft);
-			leftShuriken->getAngleRotation();
-			leftShuriken->StaticMesh->SetPhysicsLinearVelocity(leftShuriken->GetActorRightVector() * 2000.0f); // Adjust speed as needed
+			leftShuriken = GetWorld()->SpawnActor<AProjectile>(LocationLeft, RotationLeft);							
+			leftShuriken->getAngleRotation();																		
+			leftShuriken->StaticMesh->SetPhysicsLinearVelocity(leftShuriken->GetActorRightVector() * 2000.0f);		
 
 			// Spawn right projectile
-			rightShuriken = GetWorld()->SpawnActor<AProjectile>(LocationRight, RotationRight);
-			rightShuriken->getAngleRotation();
-			rightShuriken->StaticMesh->SetPhysicsLinearVelocity(rightShuriken->GetActorRightVector() * 2000.0f); // Adjust speed as needed
+			rightShuriken = GetWorld()->SpawnActor<AProjectile>(LocationRight, RotationRight);						
+			rightShuriken->getAngleRotation();																		
+			rightShuriken->StaticMesh->SetPhysicsLinearVelocity(rightShuriken->GetActorRightVector() * 2000.0f);	
+
 
 
 			// Adding shurikens to the array
@@ -253,10 +266,12 @@ void AMyProjectCharacter::Shoot(const FInputActionValue& Value)
 			FTimerHandle TimerHandle;
 			GetWorldTimerManager().SetTimer(TimerHandle, this, &AMyProjectCharacter::ReturnProjectiles, 0.2f, false);
 
+			// Reset Cooldown Varaiables so that the Player has to wait to use this ability again
 			shootCooldown = 0.f;
 			canShoot = false;
 		}
 		else {
+			// If player does not have enough Mana - Display this
 			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, FString::Printf(TEXT("Not Enough Mana!")));
 		}
 	}
@@ -264,32 +279,37 @@ void AMyProjectCharacter::Shoot(const FInputActionValue& Value)
 }
 
 
+// Return the Projectiles to the Player while being active
 void AMyProjectCharacter::ReturnProjectiles()
 {
+
+	// Set a Vector to hold the Players location
 	FVector PlayerLocation = GetActorLocation();
 
-
+	// For each Projectile in the Array
 	for (AProjectile* Projectile : SpawnedProjectiles)
 	{
+		// If the Projectile in the Array is true
 		if (Projectile)
 		{
-			// Assuming you have a reference to the StaticMesh component in your Projectile class
+			// Get the Static Mesh for the Projectile
 			UStaticMeshComponent* ProjectileMesh = Projectile->StaticMesh;
 
+			// If it has a StaticMesh
 			if (ProjectileMesh)
 			{
-				// Calculate the direction from the projectile to the player
+				// Create a Vector that holds the direction value from the projectile to the player
 				FVector ReturnDirection = PlayerLocation - Projectile->GetActorLocation();
 				ReturnDirection.Normalize();
 
 				// Set the linear velocity to move the projectile towards the player
-				float ReturnSpeed = 2000.0f; // Adjust the speed as needed
+				float ReturnSpeed = 2000.0f; 
 				ProjectileMesh->SetPhysicsLinearVelocity(ReturnDirection * ReturnSpeed);
 			}
 		}
 	}
 
-	// Set a timer to destroy the projectile mesh components after a delay
+	// Timer for calling the delete fucntion
 	FTimerHandle TimerHandle;
 	GetWorldTimerManager().SetTimer(TimerHandle, this, &AMyProjectCharacter::DeleteProjectiles, 0.2f, false);
 
@@ -299,77 +319,85 @@ void AMyProjectCharacter::ReturnProjectiles()
 
 void AMyProjectCharacter::DeleteProjectiles()
 {
-	// Destroy the projectiles
+	// For each Projecitle in the array
 	for (AProjectile* Projectile : SpawnedProjectiles)
 	{
 		if (Projectile)
 		{
+			// Destroy 
 			Projectile->Destroy();
 		}
 	}
-	SpawnedProjectiles.Empty(); // Clear the array
+	// Empty the array
+	SpawnedProjectiles.Empty(); 
 }
 
 
 void AMyProjectCharacter::Ultimate(const FInputActionValue& Value)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("Ultimate here!")));
 
+	// If the Player can use ultimate - Cooldown Feature
 	if (canUlt)
 	{
-		
+		// And if the Player has enough Mana to Cast the Ultimate Ability
 		if (characterManaData->getMana() > ultMana)
 		{
+			// Take the Shoot Mana Cost away from the Players current Mana
 			characterManaData->setMana(characterManaData->getMana() - ultMana);
 
+			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("Ultimate here!")));
+
+			// HIde Player when Active
 			SetActorHiddenInGame(true);
-			SetActorEnableCollision(false);
 
-			const int32 NumShurikens = 12;
-			const float AngleIncrement = 360.0f / NumShurikens;
+			// Set the Number of shurikens that will be spawned
+			const int32 NumberOfShurikens = 12;
+			const float AngleDistanceInc = 360.0f / NumberOfShurikens;
 
+			// Get the Players location
 			FVector PlayerLocation = GetActorLocation();
 
-			// Create a separate array for ultimate projectiles
+			// Create an Array exclusive to the Ultimate
 			TArray<AProjectile*> UltimateProjectiles;
 
-			for (int32 i = 0; i < NumShurikens; ++i)
+			// Run this as for as many shurikens you set
+			for (int32 i = 0; i < NumberOfShurikens; ++i)
 			{
-				// Calculate spawn location and rotation for each shuriken
-				float AngleInRadians = FMath::DegreesToRadians(i * AngleIncrement);
+				// Calculate spawn location and rotation for the shuriken
+				float AngleInRadians = FMath::DegreesToRadians(i * AngleDistanceInc);
 				FVector SpawnLocation = PlayerLocation + FVector(FMath::Cos(AngleInRadians), FMath::Sin(AngleInRadians), 0.0f) * 100.0f;
 				FRotator SpawnRotation = FRotationMatrix::MakeFromX(PlayerLocation - SpawnLocation).Rotator();
 
-				// Spawn the shuriken
+				// Spawn the shuriken with the correct location and orientation around the player
 				AProjectile* UltimateShuriken = GetWorld()->SpawnActor<AProjectile>(SpawnLocation, SpawnRotation);
-				UltimateShuriken->getAngleRotation();
-				UltimateShuriken->StaticMesh->SetPhysicsLinearVelocity(UltimateShuriken->GetActorForwardVector() * 2000.0f); // Adjust speed as needed
+				UltimateShuriken->getAngleRotation();	// Add angular velocity
+				UltimateShuriken->StaticMesh->SetPhysicsLinearVelocity(UltimateShuriken->GetActorForwardVector() * 2000.0f); // Add Linear Velocity at coded speed
 
 				// Set the standstill distance for the spawned shuriken
 				UltimateShuriken->StandstillDistance = StandstillDistance;
 
-				// Set the flag for ultimate projectiles
+				// Set it so we know if it is an ultimate projectiles
 				UltimateShuriken->bIsUltimateProjectile = true;
 
-				// Add the ultimate projectile to the separate array
+				// Add the ultimate projectile to the array we made
 				UltimateProjectiles.Add(UltimateShuriken);
 
 			}
 
 			// Add the ultimate projectiles array to the main SpawnedProjectiles array
 			SpawnedUltProjectiles.Append(UltimateProjectiles);
-			SetActorEnableCollision(true);
 
-
+			// Reset the shooting ultimate cooldowns
 			ultimateCooldown = 0.f;
 			canUlt = false;
 
-			// Set a timer to return the ultimate projectiles at the desired time - 2 seconds
+			// Timer for calling the delete function 
 			FTimerHandle TimerHandle;
 			GetWorldTimerManager().SetTimer(TimerHandle, this, &AMyProjectCharacter::ReturnUltProjectiles, 2.f, false);
 		}
 
 		else {
+			// If player does not have enough Mana - Display this
 			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, FString::Printf(TEXT("Not Enough Mana!")));
 		}
 	}
@@ -396,18 +424,9 @@ void AMyProjectCharacter::ReturnUltProjectiles()
 				ReturnDirection.Normalize();
 
 				// Set the linear velocity to move the projectile towards the player
-				float ReturnSpeed = 2000.0f; // Adjust the speed as needed
+				float ReturnSpeed = 2000.0f; 
 				ProjectileMesh->SetPhysicsLinearVelocity(ReturnDirection * ReturnSpeed);
 			}
-
-			// For deleting Projectiles one by one
-			/*if (Projectile->GetActorLocation() + 10 == GetWorld()->GetFirstPlayerController()->GetPawn()->GetActorLocation())
-			{
-				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("HITTING!")));
-				DeleteUltProjectiles();
-			}*/
-
-			
 		}
 	}
 
@@ -422,67 +441,78 @@ void AMyProjectCharacter::ReturnUltProjectiles()
 
 void AMyProjectCharacter::DeleteUltProjectiles()
 {
-	// Destroy the projectiles
+	// For each Projecitle in the array
 	for (AProjectile* Projectile : SpawnedUltProjectiles)
 	{
 		if (Projectile)
 		{
+			// Destroy
 			Projectile->Destroy();
 		}
 	}
-	SpawnedUltProjectiles.Empty(); // Clear the array
-	//returnStaticPlayer = true; // Sets this too true so you can recieve another static player positiuon when you press the ultimate button so shurikens dont ravel away from the new location
+	// Empty the array
+	SpawnedUltProjectiles.Empty(); 
+	
 }
 
 
 void AMyProjectCharacter::UI(float DeltaTime)
 {
 
+	// Create 2 Static bools to use for the On Screen UI Display - 1 for each ability
 	static bool talonQReady = true;
 	static bool talonUltReady = true;
 
-	// Display a message indicating that you can shoot
+	// Display a message indicating that you can shoot if talonQReady is true and if canShoot is true
 	if (canShoot && talonQReady)
 	{
+		// Print message saying its ready to be used
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("Q Ability Available")));
+		// Set Boolean to false
 		talonQReady = false;
 	}
 	else if(!canShoot)
 	{
 		// Remove the message when you can't shoot
-		talonQReady = true;
 		GEngine->ClearOnScreenDebugMessages();
+		// Set Boolean to true
+		talonQReady = true;
 		
 	}
 
 	// Display a message indicating that you can use your ultimate
 	if (canUlt && talonUltReady)
 	{
+		// Display message saying its ready
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("Ultimate Ability Available")));
+		// Set Boolean to false
 		talonUltReady = false;
 	}
 	else if (!canUlt)
 	{
 		// Remove the message when you can't use your ultimate
-		talonUltReady = true;
 		GEngine->ClearOnScreenDebugMessages();
+		// Set Boolean to true
+		talonUltReady = true;
 	}
 
-	// Mana Text - randomly explodes tons of messages 
+	// Mana Text Display
+	// If the display mana variable is above 1
 	if (displayMana += DeltaTime >= 1)
 	{
+		// Set Show Mana Regen to true
 		showManaRegen = true;
 	}
+	// If the Show Mana Regen Boolean is true
 	if (showManaRegen)
 	{	
+		// Display what the players Current Mana is 
 		GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Blue, FString::Printf(TEXT("Mana: %.2f"), characterManaData->getMana()));
+		// Set the Show Mana Regen Boolean to false
 		showManaRegen = false;
 	}
 	
 }
 
-FVector AMyProjectCharacter::getPlayerPosition()
-{
-	return GetWorld()->GetFirstPlayerController()->GetPawn()->GetActorLocation();
-}
+
 

@@ -364,12 +364,12 @@ void AMyProjectCharacter::Ultimate(const FInputActionValue& Value)
 			for (int32 i = 0; i < NumberOfShurikens; ++i)
 			{
 				// Calculate spawn location and rotation for the shuriken
-				float AngleInRadians = FMath::DegreesToRadians(i * AngleDistanceInc);
-				FVector SpawnLocation = PlayerLocation + FVector(FMath::Cos(AngleInRadians), FMath::Sin(AngleInRadians), 0.0f) * 100.0f;
-				FRotator SpawnRotation = FRotationMatrix::MakeFromX(PlayerLocation - SpawnLocation).Rotator();
+				float RadianAngle = FMath::DegreesToRadians(i * AngleDistanceInc);	// Change angles from Degrees to Radians
+				FVector ShurikenLocation = PlayerLocation + FVector(FMath::Cos(RadianAngle), FMath::Sin(RadianAngle), 0.0f) * 100.0f; // Calculate the spawn location based on polar coordinates
+				FRotator ShurikenRotation = FRotationMatrix::MakeFromX(PlayerLocation - ShurikenLocation).Rotator(); // Calculate the spawn rotation
 
 				// Spawn the shuriken with the correct location and orientation around the player
-				AProjectile* UltimateShuriken = GetWorld()->SpawnActor<AProjectile>(SpawnLocation, SpawnRotation);
+				AProjectile* UltimateShuriken = GetWorld()->SpawnActor<AProjectile>(ShurikenLocation, ShurikenRotation);
 				UltimateShuriken->getAngleRotation();	// Add angular velocity
 				UltimateShuriken->StaticMesh->SetPhysicsLinearVelocity(UltimateShuriken->GetActorForwardVector() * 2000.0f); // Add Linear Velocity at coded speed
 
